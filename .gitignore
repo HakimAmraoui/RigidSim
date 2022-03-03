@@ -1,0 +1,9 @@
+build
+CMakeFiles
+data
+dep/*
+*.tga
+*.cmake
+*.in
+*.txt
+*.tga

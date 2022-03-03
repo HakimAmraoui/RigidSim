@@ -20,14 +20,17 @@
 #define _RIGIDSOLVER_HPP_
 
 #include <glm/ext/matrix_transform.hpp>
+#include <iostream>
 
 #include "Vector3.hpp"
 #include "Matrix3x3.hpp"
+#include "Quaternion.hpp"
+
 
 struct BodyAttributes {
   BodyAttributes() :
     X(0, 0, 0), R(Mat3f::I()), P(0, 0, 0), L(0, 0, 0),
-    V(0, 0, 0), omega(0, 0, 0), F(0, 0, 0), tau(0, 0, 0) {}
+    V(0, 0, 0), omega(0, 0, 0), F(0, 0, 0), tau(0, 0, 0), Q(0,1,0,0){}
 
   glm::mat4 worldMat() const
   {
@@ -45,6 +48,7 @@ struct BodyAttributes {
   // rigid body state
   Vec3f X;                      // position
   Mat3f R;                      // rotation
+  Quaternion Q;                 // rotation computation alias
   Vec3f P;                      // linear momentum
   Vec3f L;                      // angular momentum
 
@@ -101,20 +105,7 @@ public:
 };
 
 
-class Quaternion {
-public:
-  tReal a;
-  tReal b;
-  tReal c;
-  tReal d;
-  Quaternion(
-    tReal a, tReal b, tReal c, tReal d) :
-    a(a), b(b), c(c), d(d) {}
 
-  ~Quaternion(){}
-
-
-}
 
 class RigidSolver {
 public:
@@ -136,7 +127,7 @@ public:
     //second time derivatives
     computeForceAndTorque();
 
-
+    
     // first time derivatives
     body->P += dt * body->F;            // Linear momentum
     body->L += dt * body->tau;          // Rotation momentum
@@ -146,17 +137,12 @@ public:
 
     //zero time derivatives
     body->X += dt * body->V;
-    std::cout<< body->I0.sumSqr()<<std::endl;
-    std::cout<< body->I0inv.sumSqr()<<std::endl;
-    std::cout<< body->Iinv.sumSqr()<<std::endl;
-    body->R += dt * Mat3f(
-                  0, - body->omega[2], body->omega[1],
-                  body->omega[2], 0, - body->omega[0],
-                  - body->omega[1], body->omega[0], 0
-                )
-                * body->R;
+    
+    body->Q = body->Q + Quaternion( 0, body->omega.x, body->omega.y, body->omega.z) * body->Q * dt;
+    body->Q.normalize();
+    body->R = body->Q.toRotationMatrix();
 
-
+    printf("body->Q = %s, body->tau length = %f, body->R length = %f\n", body->Q.toString().c_str(), body->tau.length(), body->R.sumSqr());
     ++_step;
     _sim_t += dt;
   }
@@ -167,14 +153,13 @@ private:
   void computeForceAndTorque()
   {
     body->F = _g;
-
-
+    body->tau = body->tau * .5;
     // TODO: instance force at the very first step
     if(_step==1) {
-        body->F += Vec3f(1.0, 7, 2.4)/5.0;
+        body->F = Vec3f(1.0, 7, 2.4)/5.0;
         // body->F += Vec3f(.15, .25, .03);
 
-        // body->tau += Vec3f(1.0, 1.0, 0.0);
+        body->tau = Vec3f(.001, .001, 0.0);
     }
   }
 
