@@ -8,3 +8,4 @@ dep/*
 *.txt
 *.tga
 *.cmake
+.vscode/*

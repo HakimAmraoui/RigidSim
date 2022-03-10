@@ -155,6 +155,7 @@ private:
     body->tau = Vec3f(0,0,0);
     // TODO: instance force at the very first step
     if(_step==1) {
+        printf("step1\n");
         body->F += Vec3f(1.0, 7, 2.4)/5.0;
         // body->F += Vec3f(.15, .25, .03);
 
