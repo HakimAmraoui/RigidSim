@@ -29,8 +29,8 @@
 
 struct BodyAttributes {
   BodyAttributes() :
-    X(0, 0, 0), R(Mat3f::I()), P(0, 0, 0), L(0, 0, 0),
-    V(0, 0, 0), omega(0, 0, 0), F(0, 0, 0), tau(0, 0, 0), Q(0,1,0,0){}
+    X(0, 0, 0), Q(1,0,0,0), R(Mat3f::I()), P(0, 0, 0), L(0, 0, 0),
+    V(0, 0, 0), omega(0, 0, 0), F(0, 0, 0), tau(0, 0, 0){}
 
   glm::mat4 worldMat() const
   {
@@ -127,13 +127,13 @@ public:
     //second time derivatives
     computeForceAndTorque();
 
-    
+    body->V = body->P/body->M;          // Linear velocity
+    body->omega = body->Iinv * body->L; // Angular velocity
+
+
     // first time derivatives
     body->P += dt * body->F;            // Linear momentum
     body->L += dt * body->tau;          // Rotation momentum
-
-    body->V = body->P/body->M;          // Linear velocity
-    body->omega = body->Iinv * body->L; // Angular velocity
 
     //zero time derivatives
     body->X += dt * body->V;
@@ -141,8 +141,7 @@ public:
     body->Q = body->Q + Quaternion( 0, body->omega.x, body->omega.y, body->omega.z) * body->Q * dt;
     body->Q.normalize();
     body->R = body->Q.toRotationMatrix();
-
-    printf("body->Q = %s, body->tau length = %f, body->R length = %f\n", body->Q.toString().c_str(), body->tau.length(), body->R.sumSqr());
+//  printf("body->Q = %s, body->tau length = %f, body->R length = %f\n", body->Q.toString().c_str(), body->tau.length(), body->R.sumSqr());
     ++_step;
     _sim_t += dt;
   }
@@ -152,14 +151,14 @@ public:
 private:
   void computeForceAndTorque()
   {
-    body->F = _g;
-    body->tau = body->tau * .5;
+    body->F = _g*.1;
+    body->tau = Vec3f(0,0,0);
     // TODO: instance force at the very first step
     if(_step==1) {
-        body->F = Vec3f(1.0, 7, 2.4)/5.0;
+        body->F += Vec3f(1.0, 7, 2.4)/5.0;
         // body->F += Vec3f(.15, .25, .03);
 
-        body->tau = Vec3f(.001, .001, 0.0);
+        body->tau = Vec3f(.005, .005, 0.0);
     }
   }
 

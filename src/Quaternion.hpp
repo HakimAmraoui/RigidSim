@@ -40,18 +40,19 @@ public:
 
   Mat3f toRotationMatrix(){
     return Mat3f(
-      1-2*(this->c*this->c + this->d*this->d),
-      2*  (this->b*this->c - this->a*this->d),
-      2*  (this->b*this->d + this->a*this->c),
+      1.f-2.0*(this->c*this->c + this->d*this->d),
+      2.f*  (this->b*this->c - this->a*this->d),
+      2.f*  (this->b*this->d + this->a*this->c),
 
-      2*  (this->b*this->c + this->a*this->d),
-      1-2*(this->b*this->b + this->d*this->d),
-      2*  (this->c*this->d - this->a*this->b),
+      2.f*  (this->b*this->c + this->a*this->d),
+      1.f-2.f*(this->b*this->b + this->d*this->d),
+      2.f*  (this->c*this->d - this->a*this->b),
 
-      2*  (this->b*this->d - this->a*this->c),
-      2*  (this->c*this->d + this->a*this->b),
-      1-2*(this->b*this->b - this->c*this->c));
+      2.f*  (this->b*this->d - this->a*this->c),
+      2.f*  (this->c*this->d + this->a*this->b),
+      1.f-2.f*(this->b*this->b + this->c*this->c));
   }
+
   Quaternion operator*(tReal const &p) const{
     return Quaternion(p*this->a, p*this->b, p*this->c, p*this->d);
   }

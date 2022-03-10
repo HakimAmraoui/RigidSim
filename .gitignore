@@ -7,3 +7,4 @@ dep/*
 *.in
 *.txt
 *.tga
+*.cmake
